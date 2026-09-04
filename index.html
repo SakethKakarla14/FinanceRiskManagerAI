@@ -537,7 +537,7 @@
             let isApproved = false;
 
             if (isTxMode) {
-                if (wantsFraud) {
+                if (true) {
                     const spikeAction = data.decisions.fraud_spike.action;
                     const spikeScore = data.decisions.fraud_spike.risk_score;
                     document.getElementById('res_spike').innerText = spikeAction + (spikeScore != null ? ` (${spikeScore})` : '');
