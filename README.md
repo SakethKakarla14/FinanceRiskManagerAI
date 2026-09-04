@@ -2,7 +2,7 @@
 
 A production-grade, end-to-end financial risk management system built with a **cascading multi-model ML architecture**. The platform evaluates checkout fraud, coordinated abuse rings, and post-purchase return abuse in real time, with an integrated generative AI layer for forensic reporting and legal dispute generation.
 
-> **Live Demo:** [financeriskmanager.onrender.com](https://financeriskmanager.onrender.com)
+> **Live Demo:** [Finance Risk Manager AI demo](https://financeriskmanagerai.onrender.com/)
 
 ---
 
