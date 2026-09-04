@@ -1,0 +1,63 @@
+{
+    "experiment": "ML Engine V1",
+    "primary_metric": "PR-AUC",
+    "training_rows": 35136,
+    "internal_validation_rows": 6201,
+    "calibration_rows": 8858,
+    "feature_count": 440,
+    "categorical_feature_count": 35,
+    "excluded_columns": [
+        "isFraud",
+        "TransactionID",
+        "device_id",
+        "ip_address"
+    ],
+    "internal_validation_fraction": 0.15,
+    "focal_parameters": {
+        "alpha": 0.75,
+        "gamma": 2.0
+    },
+    "winning_model": "Focal_Loss_LightGBM",
+    "standard_lightgbm": {
+        "pr_auc": 0.40582000934377765,
+        "roc_auc": 0.8473393836118029,
+        "precision_at_0.5": 0.4186851211072664,
+        "recall_at_0.5": 0.4306049822064057,
+        "f1_at_0.5": 0.4245614035087719,
+        "false_positives_at_0.5": 168,
+        "false_negatives_at_0.5": 160,
+        "true_positives_at_0.5": 121,
+        "true_negatives_at_0.5": 8409,
+        "false_positive_rate": 0.019587268275620847,
+        "max_f1": 0.44444444397541727,
+        "best_f1_threshold": 0.6938898713261403
+    },
+    "focal_loss_lightgbm": {
+        "pr_auc": 0.4091088057352272,
+        "roc_auc": 0.8568288856608566,
+        "precision_at_0.5": 0.6408450704225352,
+        "recall_at_0.5": 0.3238434163701068,
+        "f1_at_0.5": 0.4302600472813239,
+        "false_positives_at_0.5": 51,
+        "false_negatives_at_0.5": 190,
+        "true_positives_at_0.5": 91,
+        "true_negatives_at_0.5": 8526,
+        "false_positive_rate": 0.005946135012242042,
+        "max_f1": 0.44615384565710803,
+        "best_f1_threshold": 0.43171201618722477
+    },
+    "winning_model_metrics": {
+        "pr_auc": 0.4091088057352272,
+        "roc_auc": 0.8568288856608566,
+        "precision_at_0.5": 0.6408450704225352,
+        "recall_at_0.5": 0.3238434163701068,
+        "f1_at_0.5": 0.4302600472813239,
+        "false_positives_at_0.5": 51,
+        "false_negatives_at_0.5": 190,
+        "true_positives_at_0.5": 91,
+        "true_negatives_at_0.5": 8526,
+        "false_positive_rate": 0.005946135012242042,
+        "max_f1": 0.44615384565710803,
+        "best_f1_threshold": 0.43171201618722477
+    }
+}

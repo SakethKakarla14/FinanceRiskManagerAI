@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Heavy Machine Learning Weights
+*.pkl
+*.pth
+*.parquet
+
+# Outdated Large Datasets
+*.csv
+*.json
+!unified_forensic_db.json
+!ml_engine_results.json
+!return_financial_thresholds.json
+
+# Databases
+*.db
+*.sqlite3

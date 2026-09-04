@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Risk Command Center</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
+        :root { 
+            --bg: #09090b; 
+            --panel: rgba(24, 24, 27, 0.65); 
+            --text: #f4f4f5; 
+            --text-muted: #a1a1aa;
+            --accent: #10b981; 
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            --border: rgba(255, 255, 255, 0.1); 
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 2rem; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05), transparent 40%);
+        }
+        
+        #network-grid { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.5; }
+
+        .container { 
+            position: relative; 
+            z-index: 1; 
+            max-width: 1100px; 
+            width: 100%; 
+            margin-top: 3vh;
+            background: var(--panel); 
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px); 
+            padding: 3rem; 
+            border-radius: 20px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); 
+        }
+        
+        h1 { 
+            font-weight: 800;
+            font-size: 2.2rem;
+            letter-spacing: -0.04em;
+            background: linear-gradient(135deg, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 1.5rem; 
+            margin-bottom: 2.5rem; 
+            text-align: left; 
+        }
+        
+        .four-col-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .card { 
+            background: rgba(9, 9, 11, 0.4); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; 
+            display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+        }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: transparent; transition: background 0.3s; }
+        .card:hover { border-color: rgba(255, 255, 255, 0.15); transform: translateY(-4px); background: rgba(24, 24, 27, 0.8); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        .card:hover::before { background: var(--accent); }
+        .card-header { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.05rem; margin-bottom: 1rem; color: var(--text); }
+        .card-header input[type="checkbox"] { appearance: none; width: 22px; height: 22px; border: 2px solid #52525b; border-radius: 6px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .card-header input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+        .card-header input[type="checkbox"]:checked::after { content: '✓'; position: absolute; color: #000; font-size: 14px; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; }
+        .card-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; font-weight: 400; }
+
+        .wide-bar { background: rgba(9, 9, 11, 0.4); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; display: flex; align-items: center; gap: 15px; margin-bottom: 3rem; font-weight: 600; font-size: 1.05rem; transition: all 0.3s ease; position: relative; }
+        .wide-bar:hover { border-color: rgba(255,255,255,0.15); background: rgba(24, 24, 27, 0.8); }
+        .wide-bar input[type="checkbox"] { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 6px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .wide-bar input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .wide-bar input[type="checkbox"]:checked::after { content: '✓'; position: absolute; color: #000; font-size: 16px; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; }
+        .wide-bar input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.7; border-color: var(--accent); background: rgba(16, 185, 129, 0.2); box-shadow: none; }
+        .wide-bar-desc { font-size: 0.95rem; font-weight: 400; color: var(--text-muted); margin-left: auto; }
+        .locked-tooltip { display: none; position: absolute; top: -30px; left: 15px; background: var(--danger); color: #fff; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 12px rgba(239,68,68,0.3); pointer-events: none;}
+        .wide-bar.locked:hover .locked-tooltip { display: block; }
+
+        .tabs-container { margin-bottom: 2rem; display: flex; gap: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0; justify-content: flex-start; }
+        .tab-btn { background: transparent; color: var(--text-muted); border: none; font-size: 1rem; font-weight: 600; cursor: pointer; padding: 1rem 0; margin-right: 1rem; transition: all 0.2s; position: relative; }
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active { color: var(--text); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: var(--accent); border-radius: 3px; box-shadow: 0 -2px 10px var(--accent-glow); }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeUp 0.4s ease forwards; }
+
+        .input-section { background: rgba(9, 9, 11, 0.4); padding: 2rem; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .input-section h2 { color: var(--text); margin-top: 0; margin-bottom: 1.5rem; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .input-section h2::before { content: ''; display: block; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+        
+        .input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; }
+        label { margin-bottom: 0.5rem; font-weight: 600; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        input[type="number"], select { background: rgba(24, 24, 27, 0.6); color: var(--text); border: 1px solid rgba(255,255,255,0.08); padding: 0.85rem 1rem; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; font-family: 'Inter', sans-serif; }
+        input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); background: rgba(24, 24, 27, 0.9); }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 12px; margin-top: 0.5rem; background: rgba(24,24,27,0.5); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);}
+        .checkbox-group input { appearance: none; width: 20px; height: 20px; border: 2px solid #52525b; border-radius: 4px; cursor: pointer; transition: all 0.2s; position: relative;}
+        .checkbox-group input:checked { background: var(--accent); border-color: var(--accent); }
+        .checkbox-group input:checked::after { content: '✓'; position: absolute; color: #000; font-size: 13px; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 800; }
+
+        .sample-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .sample-btn { background: rgba(39, 39, 42, 0.5); color: var(--text); font-size: 0.85rem; padding: 0.85rem; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; font-weight: 600; border-radius: 8px; }
+        .sample-btn:hover { background: rgba(63, 63, 70, 0.8); border-color: rgba(255,255,255,0.25); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        button.primary-btn { background-color: var(--accent); color: #000; font-size: 1.05rem; font-weight: 700; padding: 1.1rem; border: none; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.3s; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
+        button.primary-btn:hover { background-color: #34d399; box-shadow: 0 10px 25px var(--accent-glow); transform: translateY(-2px); }
+        
+        .btn-secondary { background-color: transparent; color: var(--text); border: 1px solid #52525b; width: 100%; font-size: 1.05rem; font-weight: 600; padding: 1.1rem; border-radius: 8px; cursor: pointer; margin-top: 1rem; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn-secondary:hover { background-color: rgba(255,255,255,0.05); border-color: #a1a1aa; transform: translateY(-2px); }
+        .btn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 2rem; }
+
+        .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .metric-card { background: rgba(9, 9, 11, 0.4); padding: 2rem; border-radius: 14px; text-align: left; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255,255,255,0.02); }
+        .metric-card h2 { font-size: 1.6rem; font-weight: 800; margin-top: 5px; }
+
+        .ai-summary { background: rgba(9, 9, 11, 0.6); padding: 2rem; border: 1px solid var(--border); border-radius: 14px; line-height: 1.7; font-size: 1.05rem; margin-top: 1.5rem; }
+        .ai-warning { color: var(--warning); font-style: italic; display: block; border-left: 3px solid var(--warning); padding-left: 1rem; margin: 1rem 0; }
+        
+        #loading { text-align: center; margin-top: 2rem; color: var(--accent); font-size: 1.1rem; font-weight: 600; display: none; align-items: center; justify-content: center; gap: 12px; }
+        .spinner { width: 24px; height: 24px; border: 3px solid rgba(16,185,129,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        .step { display: none; opacity: 0; }
+        .step.active { display: block; animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .step-indicator { display: inline-flex; align-items: center; gap: 10px; color: var(--accent); font-size: 0.8rem; font-weight: 700; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(16, 185, 129, 0.1); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.2); }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    </style>
+</head>
+<body>
+
+<canvas id="network-grid"></canvas>
+
+<div class="container">
+    <h1>Financial Risk Command Center</h1>
+    
+
+    <div id="step1" class="step active">
+        <div class="step-indicator">Step 1: Configure Evaluation Tracks</div>
+        
+        <div class="four-col-grid">
+            <div class="card">
+                <div class="card-header"><input type="checkbox" id="run_fraud" checked> Fraud Spike</div>
+                <div class="card-desc">Evaluates transaction amounts and 24h velocity for sudden volume spikes.</div>
+            </div>
+            <div class="card">
+                <div class="card-header"><input type="checkbox" id="run_ring" checked> Abuse Ring</div>
+                <div class="card-desc">Cross-references proxy usage and billing mismatches to detect coordinated fraud networks.</div>
+            </div>
+            <div class="card">
+                <div class="card-header">Return Risk</div>
+                <div class="card-desc">Analyzes prior return history, profit margins, and claim types. Evaluates automatically on the Return tab.</div>
+            </div>
+            <div class="card">
+                <div class="card-header"><input type="checkbox" id="run_cb"> Chargeback</div>
+                <div class="card-desc">Commands the AI to generate a formal legal dispute letter if fraud is flagged.</div>
+            </div>
+        </div>
+
+        <div class="wide-bar" id="ai_bar_container">
+            <div class="locked-tooltip">Uncheck 'Chargeback' to manually toggle</div>
+            <input type="checkbox" id="run_ai" checked> AI Forensic Summary
+            <span class="wide-bar-desc">Synthesize selected ML findings into a highly analytical forensic report.</span>
+        </div>
+
+        <button class="primary-btn" onclick="goToStep2()">Next: Enter Telemetry Data</button>
+    </div>
+
+
+    <div id="step2" class="step">
+        <div class="step-indicator">Step 2: Enter Required Telemetry</div>
+        
+        <!-- TABBED NAVIGATION -->
+        <div class="tabs-container">
+            <button class="tab-btn active" id="tab-btn-tx" onclick="switchTab('tx')">Transaction Details</button>
+            <button class="tab-btn" id="tab-btn-ret" onclick="switchTab('ret')">Return Request Data</button>
+        </div>
+
+        <!-- TAB CONTENT: TRANSACTION -->
+        <div id="tab-content-tx" class="tab-content active">
+            
+            <div class="sample-row">
+                <button class="sample-btn" onclick="injectTxData('safe')">Safe Purchase</button>
+                <button class="sample-btn" onclick="injectTxData('spike')">High-Speed Spike</button>
+                <button class="sample-btn" onclick="injectTxData('proxy')">Proxy Abuse Ring</button>
+                <button class="sample-btn" onclick="injectTxData('whale')">High-Value Safe</button>
+            </div>
+
+            <div class="input-section">
+                <h2>Transaction Volume</h2>
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>Transaction Amount ($)</label>
+                        <input type="number" id="tx_amount" value="1800">
+                    </div>
+                    <div class="form-group">
+                        <label>Device Velocity (24h)</label>
+                        <input type="number" id="tx_device_velocity" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>IP Velocity (24h)</label>
+                        <input type="number" id="tx_ip_velocity" value="5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section" id="abuse_ring_inputs" style="display: none;">
+                <h2 style="margin-top: 0;">Network Telemetry (Abuse Ring Module)</h2>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="tx_proxy_used">
+                    <label style="font-size: 1rem; color: var(--text);">Proxy Detected</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="tx_proxy_ip">
+                    <label style="font-size: 1rem; color: var(--text);">Anonymous Proxy IP</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="tx_mismatch">
+                    <label style="font-size: 1rem; color: var(--text);">Billing/Shipping Mismatch</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT: RETURN -->
+        <div id="tab-content-ret" class="tab-content">
+            
+            <div class="sample-row">
+                <button class="sample-btn" onclick="injectRetData('legit')">Legitimate Return</button>
+                <button class="sample-btn" onclick="injectRetData('wardrober')">Serial Wardrober</button>
+                <button class="sample-btn" onclick="injectRetData('empty_box')">Empty Box Scam</button>
+                <button class="sample-btn" onclick="injectRetData('chronic')">Chronic Returner</button>
+            </div>
+
+            <div class="input-section">
+                <h2>Customer & Return History</h2>
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>Days Since Purchase</label>
+                        <input type="number" id="ret_days" value="29">
+                    </div>
+                    <div class="form-group">
+                        <label>Item Margin ($)</label>
+                        <input type="number" id="ret_margin" value="450">
+                    </div>
+                    <div class="form-group">
+                        <label>Prior Returns Count</label>
+                        <input type="number" id="ret_prior" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label>Customer LTV ($)</label>
+                        <input type="number" id="ret_ltv" value="300">
+                    </div>
+                    <div class="form-group">
+                        <label>Prior Fraud Incidents</label>
+                        <input type="number" id="ret_prior_fraud" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Item Category</label>
+                        <select id="ret_category">
+                            <option value="Apparel">Apparel</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Digital">Digital</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Customer Claim</label>
+                        <select id="ret_claim">
+                            <option value="Did Not Like">Did Not Like</option>
+                            <option value="Damaged Item">Damaged Item</option>
+                            <option value="Empty Box">Empty Box</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXECUTION ROW -->
+        <div class="btn-row">
+            <button class="btn-secondary" onclick="goToStep1()">Back to Config</button>
+            <button class="primary-btn" onclick="submitRiskPayload()">Check Analysis</button>
+        </div>
+        <div id="loading"><div class="spinner"></div> Routing data to backend models and Groq LLM...</div>
+    </div>
+
+
+    <div id="step_results" class="step">
+        <div class="step-indicator">Step 3: Analysis Output</div>
+        
+        <h2 style="margin-bottom: 1.5rem; color: var(--accent); border: none;">Pipeline Decisions</h2>
+        
+        <div class="metric-grid">
+            <div class="metric-card" id="card_res_spike">
+                <div style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 5px;">Fraud Spike</div>
+                <h2 id="res_spike" style="margin: 0;">-</h2>
+            </div>
+            
+            <div class="metric-card" id="card_res_ring">
+                <div style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 5px;">Abuse Ring</div>
+                <h2 id="res_ring" style="margin: 0;">-</h2>
+            </div>
+            
+            <div class="metric-card" id="card_res_return">
+                <div style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 5px;">Return Risk</div>
+                <h2 id="res_return" style="margin: 0;">-</h2>
+            </div>
+        </div>
+        
+        <div id="ai_container" style="display: none;">
+            <h2 style="margin-bottom: 0.5rem; color: var(--accent); border: none;">Generative AI Output</h2>
+            <div id="res_ai" class="ai-summary"></div>
+        </div>
+
+        <button class="btn-secondary" onclick="resetForm()">Start New Investigation</button>
+    </div>
+</div>
+
+<script>
+
+    const canvas = document.getElementById('network-grid');
+    const ctx = canvas.getContext('2d');
+    let mouse = { x: -1000, y: -1000 };
+
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; });
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const gridSize = 45; 
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
+        for (let y = 0; y <= canvas.height; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.04)'; ctx.lineWidth = 1; ctx.stroke();
+
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
+        for (let y = 0; y <= canvas.height; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
+        
+        const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 300);
+        gradient.addColorStop(0, 'rgba(74, 222, 128, 0.6)'); 
+        gradient.addColorStop(1, 'rgba(74, 222, 128, 0)');   
+        ctx.strokeStyle = gradient; ctx.stroke();
+        requestAnimationFrame(drawGrid);
+    }
+    drawGrid(); 
+
+
+    document.getElementById('run_cb').addEventListener('change', function() {
+        const aiCheckbox = document.getElementById('run_ai');
+        const aiContainer = document.getElementById('ai_bar_container');
+        
+        if (this.checked) {
+            aiCheckbox.checked = true;
+            aiCheckbox.disabled = true; 
+            aiContainer.classList.add('locked'); 
+        } else {
+            aiCheckbox.disabled = false;
+            aiContainer.classList.remove('locked');
+        }
+    });
+
+
+    let activeInputTab = 'tx';
+
+    function switchTab(tabName) {
+        activeInputTab = tabName;
+        
+        document.getElementById('tab-btn-tx').classList.remove('active');
+        document.getElementById('tab-btn-ret').classList.remove('active');
+        document.getElementById('tab-content-tx').classList.remove('active');
+        document.getElementById('tab-content-ret').classList.remove('active');
+
+        document.getElementById('tab-btn-' + tabName).classList.add('active');
+        document.getElementById('tab-content-' + tabName).classList.add('active');
+    }
+
+
+    function injectTxData(type) {
+        const resetCb = () => { document.getElementById('tx_proxy_used').checked = false; document.getElementById('tx_proxy_ip').checked = false; document.getElementById('tx_mismatch').checked = false; };
+        
+        if (type === 'safe') {
+            document.getElementById('tx_amount').value = 45.00;
+            document.getElementById('tx_ip_velocity').value = 1; document.getElementById('tx_device_velocity').value = 1;
+            resetCb();
+        } else if (type === 'spike') {
+            document.getElementById('tx_amount').value = 3200.00;
+            document.getElementById('tx_ip_velocity').value = 12; document.getElementById('tx_device_velocity').value = 12;
+            resetCb();
+        } else if (type === 'proxy') {
+            document.getElementById('tx_amount').value = 150.00;
+            document.getElementById('tx_ip_velocity').value = 4; document.getElementById('tx_device_velocity').value = 4;
+            document.getElementById('tx_proxy_used').checked = true; document.getElementById('tx_proxy_ip').checked = true; document.getElementById('tx_mismatch').checked = true;
+        } else if (type === 'whale') {
+            document.getElementById('tx_amount').value = 4500.00;
+            document.getElementById('tx_ip_velocity').value = 1; document.getElementById('tx_device_velocity').value = 1;
+            resetCb();
+        }
+    }
+
+
+    function injectRetData(type) {
+        if (type === 'legit') {
+            document.getElementById('ret_days').value = 4;
+            document.getElementById('ret_margin').value = 15.00;
+            document.getElementById('ret_prior').value = 0;
+            document.getElementById('ret_ltv').value = 500.00;
+            document.getElementById('ret_prior_fraud').value = 0;
+            document.getElementById('ret_category').value = "Apparel";
+            document.getElementById('ret_claim').value = "Did Not Like";
+        } else if (type === 'wardrober') {
+            document.getElementById('ret_days').value = 29;
+            document.getElementById('ret_margin').value = 450.00;
+            document.getElementById('ret_prior').value = 3;
+            document.getElementById('ret_ltv').value = 300.00;
+            document.getElementById('ret_prior_fraud').value = 0;
+            document.getElementById('ret_category').value = "Apparel";
+            document.getElementById('ret_claim').value = "Did Not Like";
+        } else if (type === 'empty_box') {
+            document.getElementById('ret_days').value = 2;
+            document.getElementById('ret_margin').value = 1200.00;
+            document.getElementById('ret_prior').value = 5;
+            document.getElementById('ret_ltv').value = 100.00;
+            document.getElementById('ret_prior_fraud').value = 1;
+            document.getElementById('ret_category').value = "Electronics";
+            document.getElementById('ret_claim').value = "Empty Box";
+        } else if (type === 'chronic') {
+            document.getElementById('ret_days').value = 31;
+            document.getElementById('ret_margin').value = 80.00;
+            document.getElementById('ret_prior').value = 4;
+            document.getElementById('ret_ltv').value = 450.00;
+            document.getElementById('ret_prior_fraud').value = 0;
+            document.getElementById('ret_category').value = "Digital";
+            document.getElementById('ret_claim').value = "Did Not Like";
+        }
+    }
+
+
+    function goToStep2() {
+        document.getElementById('step1').classList.remove('active');
+        
+        if (document.getElementById('run_ring').checked) {
+            document.getElementById('abuse_ring_inputs').style.display = 'block';
+        } else {
+            document.getElementById('abuse_ring_inputs').style.display = 'none';
+        }
+        
+        document.getElementById('step2').classList.add('active');
+        
+        if (document.getElementById('run_fraud').checked || document.getElementById('run_ring').checked) {
+            switchTab('tx');
+        } else {
+            switchTab('ret');
+        }
+    }
+
+    function goToStep1() {
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+    }
+
+    function resetForm() {
+        document.getElementById('step_results').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+    }
+
+    async function submitRiskPayload() {
+        const isTxMode = (activeInputTab === 'tx');
+        const wantsChargeback = document.getElementById('run_cb').checked;
+        const wantsAI = document.getElementById('run_ai').checked;
+        const wantsFraud = document.getElementById('run_fraud').checked;
+        const wantsRing = document.getElementById('run_ring').checked;
+
+        const payload = {
+            transaction_data: {
+                amount: parseFloat(document.getElementById('tx_amount').value),
+                ip_txn: parseInt(document.getElementById('tx_ip_velocity').value),
+                device_txn: parseInt(document.getElementById('tx_device_velocity').value),
+                proxy_used: document.getElementById('tx_proxy_used').checked,
+                proxy_ip: document.getElementById('tx_proxy_ip').checked,
+                bill_ship_mismatch: document.getElementById('tx_mismatch').checked 
+            },
+            return_data: {
+                time_to_return_days: parseInt(document.getElementById('ret_days').value),
+                item_margin: parseFloat(document.getElementById('ret_margin').value),
+                ltv: parseFloat(document.getElementById('ret_ltv').value),
+                prior_returns: parseInt(document.getElementById('ret_prior').value),
+                prior_fraud: parseInt(document.getElementById('ret_prior_fraud').value),
+                category: document.getElementById('ret_category').value,
+                claim: document.getElementById('ret_claim').value
+            },
+            ui_options: {
+                run_abuse_ring_check: wantsRing,
+                generate_ai_summary: wantsAI,
+                generate_chargeback: wantsChargeback,
+                mode: isTxMode ? 'transaction' : 'return'
+            }
+        };
+
+        // VISUAL LOGIC: Only show cards relevant to the active tab
+        document.getElementById('card_res_spike').style.display = (isTxMode && wantsFraud) ? 'block' : 'none';
+        document.getElementById('card_res_ring').style.display = (isTxMode && wantsRing) ? 'block' : 'none';
+        document.getElementById('card_res_return').style.display = !isTxMode ? 'block' : 'none';
+
+        document.getElementById('loading').style.display = 'flex';
+        
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            // Populate Metrics Based on Mode
+            // isApproved = true ONLY for AUTO-APPROVE / AUTO-REFUND (not REQUIRE PHOTO)
+            let isApproved = false;
+
+            if (isTxMode) {
+                if (wantsFraud) {
+                    const spikeAction = data.decisions.fraud_spike.action;
+                    const spikeScore = data.decisions.fraud_spike.risk_score;
+                    document.getElementById('res_spike').innerText = spikeAction + (spikeScore != null ? ` (${spikeScore})` : '');
+                    if (spikeAction.includes('BLOCK')) {
+                        document.getElementById('res_spike').style.color = '#ff6b6b';
+                    } else if (spikeAction.includes('UNCERTAIN') || spikeAction.includes('MANUAL')) {
+                        document.getElementById('res_spike').style.color = '#ffb86c';
+                    } else {
+                        document.getElementById('res_spike').style.color = '#4ade80';
+                        isApproved = true;
+                    }
+                }
+                
+                if (wantsRing) {
+                    const ringMse = data.decisions.abuse_ring.confidence_mse;
+                    document.getElementById('res_ring').innerText = data.decisions.abuse_ring.detected ? `DETECTED (MSE: ${ringMse})` : 'CLEARED';
+                    document.getElementById('res_ring').style.color = data.decisions.abuse_ring.detected ? '#ff6b6b' : '#4ade80';
+                }
+            } else {
+                const retAction = data.decisions.return_risk.action;
+                const retScore = data.decisions.return_risk.score;
+                document.getElementById('res_return').innerText = retAction + (retScore != null ? ` (${retScore})` : '');
+                if (retAction.includes('REJECT')) {
+                    document.getElementById('res_return').style.color = '#ff6b6b';
+                } else if (retAction.includes('PHOTO')) {
+                    document.getElementById('res_return').style.color = '#ffb86c';
+                } else {
+                    document.getElementById('res_return').style.color = '#4ade80';
+                    isApproved = true;
+                }
+            }
+
+            // Populate AI Output with the Compute-Saving Override (Both Summary and Chargeback)
+            const aiContainer = document.getElementById('ai_container');
+            const aiTextElement = document.getElementById('res_ai');
+            
+            if (data.ai_outputs && (data.ai_outputs.summary || data.ai_outputs.chargeback)) {
+                aiContainer.style.display = 'block';
+                
+                let finalTextHTML = "";
+                
+                if (data.ai_outputs.summary && wantsAI) {
+                    finalTextHTML += `<strong>Forensic Summary:</strong><br>${data.ai_outputs.summary}<br><br>`;
+                }
+                
+                if (data.ai_outputs.chargeback && wantsChargeback) {
+                    if (isApproved) {
+                        let contextText = isTxMode ? 'Transaction was AUTO-APPROVED.' : 'Return Risk module authorized an AUTO-REFUND.';
+                        finalTextHTML += `<span class="ai-warning"><strong>Chargeback Override:</strong> ${contextText} Legal dispute drafting is only required for blocked, flagged, or rejected claims. AI chargeback generation bypassed to save API compute costs.</span>`;
+                    } else {
+                        finalTextHTML += `<strong>Chargeback Dispute Letter:</strong><br>${data.ai_outputs.chargeback}`;
+                    }
+                }
+                
+                aiTextElement.innerHTML = finalTextHTML;
+                aiTextElement.classList.remove('ai-warning');
+            } else {
+                aiContainer.style.display = 'none';
+            }
+
+            // Transition Screens
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('step_results').classList.add('active');
+
+        } catch (error) {
+            alert("Connection Error: Make sure your FastAPI server is running (python run_server.py) in the terminal!");
+            console.error(error);
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>

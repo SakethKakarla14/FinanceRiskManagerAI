@@ -1,0 +1,31 @@
+{
+    "t_low": 0.69,
+    "t_high": 0.99,
+    "baseline_loss_refund_all": 47949.95,
+    "baseline_loss_reject_all": 1182315.0,
+    "f1_threshold": 0.8983318792428941,
+    "f1_single_cutoff_loss": 14718.21,
+    "optimized_loss": 3706.9300000000094,
+    "dollars_saved_vs_refund_all": 44243.01999999999,
+    "dollars_saved_vs_best_static": 44243.01999999999,
+    "loss_reduction_vs_refund_all_pct": 92.26916816388754,
+    "routing": {
+        "auto_refund_pct": 84.72406181015452,
+        "require_photo_pct": 12.71523178807947,
+        "auto_reject_pct": 2.5607064017660046,
+        "auto_refund_count": 1919,
+        "require_photo_count": 288,
+        "auto_reject_count": 58,
+        "fraud_missed_via_refund": 23,
+        "fraud_caught_via_review_friction": 156,
+        "fraud_blocked_via_reject": 57,
+        "legit_frictioned_via_review": 132,
+        "legit_churned_via_reject": 1
+    },
+    "financial_assumptions": {
+        "review_cost_usd": 2.0,
+        "friction_penalty_usd": 10.0
+    },
+    "calibration_rows": 2265,
+    "threshold_combinations_evaluated": 4851
+}
