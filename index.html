@@ -514,7 +514,8 @@
                 generate_ai_summary: wantsAI,
                 generate_chargeback: wantsChargeback,
                 mode: isTxMode ? 'transaction' : 'return'
-            }
+            },
+            user_id: 'LIVE_USER' // Fixed hardcoded value for demonstration, should be dynamic in reality
         };
 
         // VISUAL LOGIC: Only show cards relevant to the active tab

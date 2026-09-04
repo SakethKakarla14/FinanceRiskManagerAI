@@ -1,0 +1,35 @@
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ── Virtual Environment ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Environment Secrets ──────────────────────────────────────────────────────
+.env
+.env.*
+
+# ── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Large Dataset Files ───────────────────────────────────────────────────────
+*.parquet
+*.csv
+*.json
+
+# ── Databases (live state should never be committed) ─────────────────────────
+*.db
+*.sqlite3
+
+# ── OS & Editor Noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+.git/
