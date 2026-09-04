@@ -328,23 +328,13 @@ async def run_risk_evaluation(payload: dict) -> dict:
     wants_ring = payload["ui_options"].get("run_abuse_ring_check")
     
     if wants_ring:
-        if fraud_result["action"] == "AUTO-APPROVE":
-            logger.info("[Track 2] Skipped Model 2 (Model 1 Approved unconditionally)")
-            ring_result = {"detected": False, "note": "Skipped - Model 1 Approved", "confidence_mse": 0.0}
-        elif fraud_result["action"] == "UNCERTAIN":
-            logger.info("[Track 2] Model 1 Uncertain. Running Abuse-Ring Autoencoder...")
-            ring_result = _run_abuse_ring(payload["transaction_data"])
-            
-            if ring_result.get("detected"):
-                fraud_result["action"] = "MANUAL REVIEW" 
+        logger.info("[Track 2] Running Abuse-Ring Autoencoder secondary check...")
+        ring_result = _run_abuse_ring(payload["transaction_data"])
+        
+        if ring_result.get("detected"):
+            if fraud_result["action"] == "AUTO-APPROVE":
+                fraud_result["action"] = "MANUAL REVIEW (ABUSE RING)"
             else:
-                fraud_result["action"] = "AUTO-APPROVE"
-                
-        elif fraud_result["action"] == "AUTO-BLOCK":
-            logger.info("[Track 2] Model 1 Fraud. Running Abuse-Ring Autoencoder for secondary check...")
-            ring_result = _run_abuse_ring(payload["transaction_data"])
-            
-            if ring_result.get("detected"):
                 fraud_result["action"] = "AUTO-BLOCK (ABUSE RING)"
     else:
         logger.info("[Track 2] Skipped (UI Checkbox unchecked).")
