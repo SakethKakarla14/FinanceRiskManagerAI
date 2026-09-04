@@ -229,7 +229,11 @@ def _run_abuse_ring(transaction_data: dict) -> dict:
             mse = float(torch.mean((tensor_input - reconstructed) ** 2).item())
 
         ip_match = transaction_data.get("ip_match", True)
-        detected = mse > ae_threshold
+        has_proxy = transaction_data.get("proxy_used", False) or transaction_data.get("proxy_ip", False)
+        mismatch = transaction_data.get("bill_ship_mismatch", False)
+        
+        # Fuse continuous AE anomaly score with definitive categorical network patterns
+        detected = (mse > ae_threshold) or has_proxy or mismatch
 
         return {
             "detected": detected,
