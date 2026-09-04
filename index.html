@@ -466,7 +466,7 @@
         
         document.getElementById('step2').classList.add('active');
         
-        if (document.getElementById('run_fraud').checked || document.getElementById('run_ring').checked) {
+        if (document.getElementById('run_ring').checked || true) { // Default to TX mode essentially, unless we add more logic
             switchTab('tx');
         } else {
             switchTab('ret');
@@ -517,7 +517,7 @@
         };
 
         // VISUAL LOGIC: Only show cards relevant to the active tab
-        document.getElementById('card_res_spike').style.display = (isTxMode && wantsFraud) ? 'block' : 'none';
+        document.getElementById('card_res_spike').style.display = (isTxMode) ? 'block' : 'none';
         document.getElementById('card_res_ring').style.display = (isTxMode && wantsRing) ? 'block' : 'none';
         document.getElementById('card_res_return').style.display = !isTxMode ? 'block' : 'none';
 
