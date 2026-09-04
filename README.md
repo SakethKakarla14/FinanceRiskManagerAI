@@ -8,7 +8,7 @@ A production-grade, end-to-end financial risk management system built with a **c
 
 ## System Architecture
 
-![End-to-End Architecture](Architecture Diagram.png)
+![End-to-End Architecture](ArchitectureDiagram.png)
 
 The system is organized into three operational phases, each backed by dedicated ML models and decision routers.
 
