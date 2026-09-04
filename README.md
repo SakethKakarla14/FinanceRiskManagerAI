@@ -170,9 +170,10 @@ The UI provides a **3-step wizard flow**:
 | Safe Purchase ($45, velocity=1) | AUTO-APPROVE | CLEARED | — |
 | High-Speed Spike ($3200, velocity=12) | AUTO-BLOCK | CLEARED | — |
 | Proxy Abuse Ring ($150, proxy+mismatch) | AUTO-BLOCK | DETECTED | — |
-| Serial Wardrober (29 days, 3 returns) | — | — | REQUIRE PHOTO |
+| High-Value Safe ($4500, velocity=12) | AUTO-APPROVE | CLEARED | — |
+| Legitimate return (4 days, 0 returns) | — | — | AUTO-REFUND |
 | Empty Box Scam (prior fraud=1) | — | — | AUTO-REJECT |
-
+| Chronic Returner (31 days, 4 returns) | — | — | REQUIRE PHOTO |
 ---
 
 ## Key Design Decisions
