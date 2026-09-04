@@ -1,6 +1,6 @@
 # Financial Risk Command Center
 
-A production-grade, end-to-end financial risk management system built with a **cascading multi-model ML architecture**. The platform evaluates checkout fraud, coordinated abuse rings, and post-purchase return abuse in real time, with an integrated generative AI layer for forensic reporting and legal dispute generation.
+An end-to-end financial risk management system prototype built with a **cascading multi-model ML architecture**. The platform evaluates checkout fraud, coordinated abuse rings, and post-purchase return abuse in real time, with an integrated generative AI layer for forensic reporting and legal dispute generation.
 
 > **Live Demo:** [Finance Risk Manager AI demo](https://financeriskmanagerai.onrender.com/)
 
@@ -155,7 +155,17 @@ docker run -p 7860:7860 -e GROQ_API_KEY=your_key_here finance-risk-manager
 
 ---
 
-## Demo Walkthrough
+## Demo Walkthrough & Output Images
+
+### System Output Previews
+*(Screenshots of the UI evaluating different risk vectors)*
+
+![Result 1](Result1.png)
+![Result 2](Result2.png)
+![Result 3](Result3.png)
+![Result 4](Result4.png)
+![Result 5](Result5.png)
+![Result 6](Result6.png)
 
 The UI provides a **3-step wizard flow**:
 
@@ -183,6 +193,22 @@ The UI provides a **3-step wizard flow**:
 2. **Why heuristic log-odds boosters exist:** The IEEE dataset doesn't contain real-time velocity or proxy features. At inference time, these signals are injected as calibrated log-odds adjustments to the LightGBM leaf output before sigmoid transformation. This is explicitly documented as a heuristic, not a learned parameter.
 
 3. **Why financial thresholds, not F1:** The return risk router uses thresholds derived from a dollar-denominated cost landscape, not accuracy metrics. This ensures the system optimizes for net business impact (accounting for photo review costs, customer friction, and LTV loss).
+
+---
+
+## Limitations
+
+- **Dataset Constraints:** The IEEE-CIS dataset subset used for training is highly anonymized and lacks direct telemetry (e.g., raw IP addresses). The Autoencoder currently relies heavily on engineered proxies of these features.
+- **Frontend Vulnerability:** The UI directly injects AI summary generation into the DOM without sanitization, which in a real production environment would be susceptible to XSS.
+- **Database Scalability:** The current iteration uses SQLite without connection pooling, which is sufficient for a demo but unsuitable for highly concurrent transactional processing.
+
+---
+
+## Future Scope
+
+- **Integration with Graph Neural Networks (GNNs):** Upgrading Model 2 from a standard Autoencoder to a Graph Neural Network (GNN) would allow the system to trace complex multi-account linkages dynamically.
+- **Priority Manual Review Dashboard:** The architecture flowchart dictates that "Uncertain" cases route to a priority manual review queue, which is currently a stubbed string in the backend. Building a dedicated reviewer dashboard is the logical next step.
+- **Production CI/CD:** Implement PyTest coverage for the pipeline and leverage Github Actions for automated testing and deployment.
 
 ---
 
