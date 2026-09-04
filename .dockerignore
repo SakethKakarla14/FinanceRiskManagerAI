@@ -20,7 +20,16 @@ env/
 # ── Large Dataset Files ───────────────────────────────────────────────────────
 *.parquet
 *.csv
+
+# ── JSON: ignore bulk output files, keep config/results ──────────────────────
 *.json
+!ml_engine_results.json
+!return_financial_thresholds.json
+!autoencoder_band_evaluation.json
+!m6_final_evaluation_report.json
+!m6_final_review_reduction_report.json
+!tri_state_cost_report.json
+!return_risk_results.json
 
 # ── Databases (live state should never be committed) ─────────────────────────
 *.db
