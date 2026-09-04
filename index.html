@@ -160,7 +160,7 @@
         
         <div class="four-col-grid">
             <div class="card">
-                <div class="card-header"><input type="checkbox" id="run_fraud" checked> Fraud Spike</div>
+                <div class="card-header">Fraud Spike</div>
                 <div class="card-desc">Evaluates transaction amounts and 24h velocity for sudden volume spikes.</div>
             </div>
             <div class="card">
@@ -487,7 +487,6 @@
         const isTxMode = (activeInputTab === 'tx');
         const wantsChargeback = document.getElementById('run_cb').checked;
         const wantsAI = document.getElementById('run_ai').checked;
-        const wantsFraud = document.getElementById('run_fraud').checked;
         const wantsRing = document.getElementById('run_ring').checked;
 
         const payload = {
