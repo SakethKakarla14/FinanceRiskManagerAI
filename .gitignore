@@ -8,12 +8,8 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Heavy Machine Learning Weights
-*.pkl
-*.pth
+# Legacy Datasets
 *.parquet
-
-# Outdated Large Datasets
 *.csv
 *.json
 !unified_forensic_db.json
