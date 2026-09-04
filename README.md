@@ -8,13 +8,13 @@ A production-grade, end-to-end financial risk management system built with a **c
 
 ## System Architecture
 
-![End-to-End Architecture](architecture.png)
+![End-to-End Architecture](Architecture Diagram.png)
 
 The system is organized into three operational phases, each backed by dedicated ML models and decision routers.
 
 ### Phase 1 — Checkout & Network Fraud (Model 1 → Model 2)
 
-![Fraud Spike & Abuse Ring Flow](phase1_flow.png)
+![Fraud Spike & Abuse Ring Flow](FraudSpike&Abuse-ring_diagram.png)
 
 A **cascading two-model pipeline** where every transaction flows through Model 1 (Fraud Spike), and then all outcomes — including approvals — are routed through Model 2 (Abuse Ring) for secondary network-level verification.
 
@@ -32,7 +32,7 @@ A **cascading two-model pipeline** where every transaction flows through Model 1
 
 ### Phase 2 — Post-Purchase: Returns & Policy Abuse (Model 3)
 
-![Return Risk Flow](phase2_flow.png)
+![Return Risk Flow](ReturnRefund_Diagram.png)
 
 | Model | Type | Purpose |
 |---|---|---|
@@ -47,7 +47,7 @@ Thresholds (`t_low`, `t_high`) are derived from a vectorized cost-landscape grid
 
 ### Phase 3 — Dispute Resolution (Generative AI)
 
-![Chargeback Generation Flow](phase3_flow.png)
+![Chargeback Generation Flow](AISummary&Chargeback_Diagram.png)
 
 When fraud is flagged, an **async LLM engine** (Groq) generates:
 - **Forensic Summary** — 3-sentence analytical breakdown of ML signals
