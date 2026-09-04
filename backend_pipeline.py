@@ -208,8 +208,10 @@ def _run_abuse_ring(transaction_data: dict) -> dict:
         for feat in num_features:
             if feat == "TransactionAmt":
                 val = float(transaction_data.get("amount", medians.get(feat, 0)))
-            elif feat in ("ip_txn_last_24hr", "device_txn_last_24hr"):
-                val = float(transaction_data.get("velocity_24h", medians.get(feat, 0)))
+            elif feat == "ip_txn_last_24hr":
+                val = float(transaction_data.get("ip_txn", medians.get(feat, 0)))
+            elif feat == "device_txn_last_24hr":
+                val = float(transaction_data.get("device_txn", medians.get(feat, 0)))
             else:
                 val = float(medians.get(feat, 0))
             
