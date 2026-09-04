@@ -95,7 +95,10 @@ def _load_abuse_ring_model():
         _model_cache["abuse_ring"] = {
             "model": ae_model,
             "numerical_features": numerical_features,
-            "imputation_medians": artifacts["imputation_medians"],
+            "imputation_medians": artifacts.get("imputation_medians", {}),
+            "scaler": artifacts.get("scaler"),
+            "lower_clip": artifacts.get("lower_clip", {}),
+            "upper_clip": artifacts.get("upper_clip", {}),
             "anomaly_threshold": artifacts["anomaly_threshold"],
         }
     return _model_cache["abuse_ring"]
@@ -121,22 +124,20 @@ def _run_fraud_spike(transaction_data: dict) -> dict:
     try:
         bundle = _load_fraud_model()
         model = bundle["model"]
-        fraud_artifacts = joblib.load(_resolve("preprocessing_artifacts.pkl"))
-        features = fraud_artifacts.get("feature_columns", [])
+        features = bundle["features"]
         
-        # Organic Imputation Strategy
-        try:
-            medians = joblib.load(_resolve("abuse_ring_sentinel_artifacts.pkl")).get("imputation_medians", {})
-        except Exception:
-            medians = {}
+        # Organic Imputation Strategy: Fill missing 400+ features using cached medians
+        medians = _load_abuse_ring_model().get("imputation_medians", {})
 
         row = {}
         for col in features:
             val = medians.get(col, np.nan)
             if col == "TransactionAmt": 
                 val = float(transaction_data.get("amount", val))
-            elif col in ("ip_txn_last_24hr", "device_txn_last_24hr"): 
-                val = float(transaction_data.get("velocity_24h", val))
+            elif col == "ip_txn_last_24hr":
+                val = float(transaction_data.get("ip_txn", val))
+            elif col == "device_txn_last_24hr":
+                val = float(transaction_data.get("device_txn", val))
             elif not transaction_data.get("ip_match", True):
                 if col in ("proxy_used", "Proxy_IP", "bill_ship_mismatch"):
                     val = 1.0
@@ -153,8 +154,8 @@ def _run_fraud_spike(transaction_data: dict) -> dict:
 
         raw_score = float(model.predict(df)[0])
         
-        # Mathematical log-odds multipliers to organically amplify fraud flags 
-        # without hardcoding flat percentages like 0.85
+        # Heuristic log-odds adjustments tuned manually to compensate for the fact that real-time 
+        # synthetic velocity/proxy signals couldn't be trained natively into the subset IEEE dataset.
         if transaction_data.get("device_txn", 0) >= 3 or transaction_data.get("ip_txn", 0) >= 3:
             raw_score += 3.5  # Velocity multiplier
         if transaction_data.get("proxy_used", False) or transaction_data.get("proxy_ip", False):
@@ -193,14 +194,11 @@ def _run_abuse_ring(transaction_data: dict) -> dict:
     try:
         bundle = _load_abuse_ring_model()
         ae_model = bundle["model"]
-        
-        abuse_ring_artifacts = joblib.load(_resolve("abuse_ring_sentinel_artifacts.pkl"))
-        num_features = abuse_ring_artifacts.get("numerical_features", [])
-        medians = abuse_ring_artifacts.get("imputation_medians", {})
-        scaler = abuse_ring_artifacts.get("scaler")
-        lower_clip_dict = abuse_ring_artifacts.get("lower_clip", {})
-        upper_clip_dict = abuse_ring_artifacts.get("upper_clip", {})
-        
+        num_features = bundle["numerical_features"]
+        medians = bundle["imputation_medians"]
+        scaler = bundle.get("scaler")
+        lower_clip_dict = bundle.get("lower_clip", {})
+        upper_clip_dict = bundle.get("upper_clip", {})
         ae_threshold = bundle["anomaly_threshold"]
 
         if not ae_model or not num_features:
@@ -383,37 +381,37 @@ async def run_risk_evaluation(payload: dict) -> dict:
         logger.info("[Track 4] Skipped (UI Checkboxes unchecked).")
         ui_response["ai_outputs"]["summary"] = "AI Summary not requested."
 
-        # --- ARCHITECTURAL REQUIREMENT: CLOSED LOOP ML LOGGING ---
-        # Update the Unified User Database with the forensic tags explicitly outlined in the system diagram.
-        # Implemented Environment Gating to prevent DEMO UI tests from destroying the underlying SQL state.
-        try:
-            active_mode = payload["ui_options"].get("mode", "transaction")
-            uid = payload.get("user_id", "LIVE_USER")
+    # --- ARCHITECTURAL REQUIREMENT: CLOSED LOOP ML LOGGING ---
+    # Update the Unified User Database with the forensic tags explicitly outlined in the system diagram.
+    # Implemented Environment Gating to prevent DEMO UI tests from destroying the underlying SQL state.
+    try:
+        active_mode = payload["ui_options"].get("mode", "transaction")
+        uid = payload.get("user_id", "LIVE_USER")
+        
+        if active_mode == "transaction":
+            f_action = ui_response["decisions"].get("fraud_spike", {}).get("action")
+            ring_det = ui_response["decisions"].get("abuse_ring", {}).get("detected", False)
+            is_fraud = f_action == "AUTO-BLOCK" or ring_det
+            increment = float(payload.get("transaction_data", {}).get("amount", 0.0))
             
-            if active_mode == "transaction":
-                f_action = ui_response["decisions"].get("fraud_spike", {}).get("action")
-                ring_det = ui_response["decisions"].get("abuse_ring", {}).get("detected", False)
-                is_fraud = f_action == "AUTO-BLOCK" or ring_det
-                increment = float(payload.get("transaction_data", {}).get("amount", 0.0))
-                
-                if os.getenv("ENVIRONMENT") == "PRODUCTION":
-                    update_user_profile(user_id=uid, ltv_increment=increment, returned=False, fraud=is_fraud)
-                    logger.info(f"[Track 5] Appended outcome to Unified User Database (Fraud={is_fraud})")
-                else:
-                    logger.info(f"[Track 5] [DEMO MODE] Simulated appending outcome to Unified User Database (Fraud={is_fraud})")
-                    
+            if os.getenv("ENVIRONMENT") == "PRODUCTION":
+                update_user_profile(user_id=uid, ltv_increment=increment, returned=False, fraud=is_fraud)
+                logger.info(f"[Track 5] Appended outcome to Unified User Database (Fraud={is_fraud})")
             else:
-                r_action = ui_response["decisions"].get("return_risk", {}).get("action")
-                is_fraud = r_action == "AUTO-REJECT"
+                logger.info(f"[Track 5] [DEMO MODE] Simulated appending outcome to Unified User Database (Fraud={is_fraud})")
                 
-                if os.getenv("ENVIRONMENT") == "PRODUCTION":
-                    update_user_profile(user_id=uid, ltv_increment=0.0, returned=True, fraud=is_fraud)
-                    logger.info(f"[Track 5] Appended return outcome to Unified User Database (Fraud={is_fraud})")
-                else:
-                    logger.info(f"[Track 5] [DEMO MODE] Simulated appending return outcome to Unified User Database (Fraud={is_fraud})")
-                    
-        except Exception as e:
-            logger.error(f"Failed to update unified user database: {e}")
+        else:
+            r_action = ui_response["decisions"].get("return_risk", {}).get("action")
+            is_fraud = r_action == "AUTO-REJECT"
+            
+            if os.getenv("ENVIRONMENT") == "PRODUCTION":
+                update_user_profile(user_id=uid, ltv_increment=0.0, returned=True, fraud=is_fraud)
+                logger.info(f"[Track 5] Appended return outcome to Unified User Database (Fraud={is_fraud})")
+            else:
+                logger.info(f"[Track 5] [DEMO MODE] Simulated appending return outcome to Unified User Database (Fraud={is_fraud})")
+                
+    except Exception as e:
+        logger.error(f"Failed to update unified user database: {e}")
 
     logger.info("[System] Evaluation complete. Returning payload to UI.\n")
     return ui_response
