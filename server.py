@@ -38,8 +38,20 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# DEV-ONLY: restrict origins to specific domains in production
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+# STRICT ORIGINS: Securing the API from external web embedding
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:5000",
+        "http://127.0.0.1",
+        "http://127.0.0.1:5000",
+        "https://financeriskmanager.onrender.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class TransactionData(BaseModel):
     amount: float = Field(..., ge=0)
